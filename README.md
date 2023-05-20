@@ -14,6 +14,8 @@ To implement a mini vue3 for learn
 
 [mini-vue3 预览地址](https://mengqiuleo.github.io/mini-vue3/)
 
+测试案例均来自 [vuejs/core](https://github.com/vuejs/core/tree/main/packages/vue/examples)
+
 
 ## ✨ feature
 - 使用 monorepo 架构
@@ -45,7 +47,7 @@ pnpm build
 ```
 
 ### example
-通过 server 的方式打开 packages/vue/example/\* 下的 index.html 即可
+通过 server 的方式打开 packages/vue/example/\* 下的 html 即可
 
 > ❔ 推荐使用 [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer)
 

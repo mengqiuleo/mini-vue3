@@ -1,13 +1,13 @@
 {
   "name": "mini-vue3",
   "version": "1.0.0",
-  "description": "",
+  "description": "To implement a mini vue3 for learn.",
   "main": "src/index.js",
   "scripts": {
     "test": "jest",
     "build": "rollup -c rollup.config.mjs"
   },
-  "author": "",
+  "author": "mengqiuleo",
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.13.8",
