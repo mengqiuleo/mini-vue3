@@ -32,7 +32,7 @@
 
 <script>
   const { createApp, ref, effect } = MiniVue;
-  const API_URL = `https://api.github.com/repos/leaon4/mini-vue3/commits?per_page=6&sha=`;
+  const API_URL = `https://api.github.com/repos/mengqiuleo/mini-vue3/commits?per_page=6&sha=`;
 
   const truncate = (v) => {
     const newline = v.indexOf('\n');
@@ -43,7 +43,7 @@
 
   var app = createApp({
     setup() {
-      const currentBranch = ref('master');
+      const currentBranch = ref('main');
       const commits = ref(null);
 
       effect(() => {
@@ -55,7 +55,7 @@
       });
 
       return {
-        branches: ['master'],
+        branches: ['main'],
         currentBranch,
         commits,
         truncate,
