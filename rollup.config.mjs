@@ -7,15 +7,15 @@ export default {
     // 打包出两个模块规范：cjs, esm
     {
       format: 'cjs',
-      file: 'dist/mini-vue.cjs.js'
+      file: './packages/vue/dist/mini-vue.cjs.js'
     },
     {
       format: 'es',
-      file: 'dist/mini-vue.esm.js'
+      file: './packages/vue/dist/mini-vue.esm.js'
     },
     {
       format: 'iife',
-      file: 'dist/mini-vue.bundle.js'
+      file: './packages/vue/dist/mini-vue.bundle.js'
     }
   ],
   plugins: [

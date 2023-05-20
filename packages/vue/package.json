@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "cypress open",
+    "serve": "serve . -p 55594"
   },
   "keywords": [],
   "author": "",
@@ -12,5 +13,9 @@
   "dependencies": {
     "@mini-vue3/compiler": "workspace:^1.0.0",
     "@mini-vue3/runtime": "workspace:^1.0.0"
+  },
+  "devDependencies": {
+    "cypress": "^11.0.1",
+    "serve": "^14.1.1"
   }
 }
