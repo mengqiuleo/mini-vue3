@@ -105,7 +105,9 @@ export function mountComponent(vnode, container, anchor, patch) {
       }
     },
     {
-      scheduler: queueJob,
+      scheduler(){
+        queueJob(instance.update)
+      }
     }
   );
 }

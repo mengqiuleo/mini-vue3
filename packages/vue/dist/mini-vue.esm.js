@@ -540,60 +540,111 @@ function makeMap(str) {
 const isVoidTag = makeMap(VOID_TAGS);
 const isNativeTag = makeMap(HTML_TAGS);
 
-const effectStack = [];
 let activeEffect;
+const effectStack = [];
 
-function effect(fn, option = {}) {
-  const effectFn = () => {
-    try {
-      effectStack.push(effectFn);
-      activeEffect = effectFn;
-      return fn();
-    } finally {
-      effectStack.pop();
-      activeEffect = effectStack[effectStack.length - 1];
-    }
-  };
-  if (!option.lazy) {
-    effectFn();
+class ReactiveEffect{ //* 一种封装的思想
+  // private _fn: any
+  // deps = []
+  // active = true //控制stop是否已经清理过, true表示还没clean
+  // onStop?: () => void
+  constructor(fn, scheduler = null){
+    this._fn = fn;
+    this.scheduler = scheduler;
+    this.deps = [];
+    this.active = true; //控制stop是否已经清理过, true表示还没clean
+    this.opStop = () => {};
   }
-  effectFn.scheduler = option.scheduler;
-  return effectFn;
+
+  run(){
+    effectStack.push(this);
+    activeEffect = this;
+    if(!this.active){ //false:已经clean过了，以后不用追踪
+      return this._fn()
+    }
+
+    const result = this._fn();
+
+    effectStack.pop();
+    activeEffect = effectStack[effectStack.length-1];
+    return result
+  }
+
+  stop(){
+    //m频繁调用 stop 时，如果清空过了，就不用再清空了
+    if(this.active){
+      cleanupEffect(this);
+      if(this.onStop){
+        this.onStop();
+      }
+      this.active = false;
+    }
+  }
 }
 
-const targetMap = new WeakMap();
+function cleanupEffect(effect){
+  effect.deps.forEach((dep) => { //dep代表某个key的所有effect，是一个set
+    dep.delete(effect); //让每一个set删除当前effect
+  });
+  effect.deps.length = 0;
+}
 
-function track(target, key) {
-  if (!activeEffect) {
-    return;
-  }
+const targetMap = new Map(); //所有对象，映射
+function track(target, key){
+  // if(!activeEffect) return
+  // if(!shouldTrack) return
+  //对上面代码优化
+  if(!activeEffect) return
+
+  // 每一个 target 的每一个属性都要存，容器 Set
+  // target -> key -> dep
   let depsMap = targetMap.get(target);
-  if (!depsMap) {
-    targetMap.set(target, (depsMap = new Map()));
+  if(!depsMap){
+    depsMap = new Map();
+    targetMap.set(target, depsMap);
   }
-  let dep = depsMap.get(key);
-  if (!dep) {
-    depsMap.set(key, (dep = new Set()));
+  let dep = depsMap.get(key); //dep: 对应的多个更新函数， 一个属性牵连着多个更新函数
+  if(!dep){
+    dep = new Set();
+    depsMap.set(key, dep);
   }
+
+  // trackEffects(dep)
   dep.add(activeEffect);
 }
 
-function trigger(target, key) {
-  const depsMap = targetMap.get(target);
-  if (!depsMap) {
-    return;
-  }
-  const dep = depsMap.get(key);
-  if (!dep) {
-    return;
-  }
-  dep.forEach((effectFn) => {
-    if (effectFn.scheduler) {
-      effectFn.scheduler(effectFn);
+function trigger(target, key){
+  let depsMap = targetMap.get(target);
+  if(!depsMap) return
+  let dep = depsMap.get(key);
+
+  if(!dep) return
+  // triggerEffects(dep)
+  dep.forEach((effect) => {
+    if (effect.scheduler) {
+      effect.scheduler();
     } else {
-      effectFn();
+      effect.run();
     }
   });
+}
+
+function effect(fn, options = {}){
+  const _effect = new ReactiveEffect(fn);
+  // _effect.onStop = options.onStop
+  // 将上面这行代码进行优化
+  // Object.assign(_effect, options)
+  //再次进行优化，抽离一个公共函数
+  if(!options.lazy){
+    _effect.run();
+  }
+  // extend(_effect, options)
+  _effect.scheduler = options.scheduler;
+
+  const runner =  _effect.run.bind(_effect); // 返回的那个runner函数
+  runner.effect = _effect;
+  return runner
+  // return _effect.run
 }
 
 const reactiveMap = new WeakMap();
@@ -1011,7 +1062,9 @@ function mountComponent(vnode, container, anchor, patch) {
       }
     },
     {
-      scheduler: queueJob,
+      scheduler(){
+        queueJob(instance.update);
+      }
     }
   );
 }
