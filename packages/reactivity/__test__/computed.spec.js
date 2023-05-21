@@ -40,10 +40,10 @@ describe('computed', () => {
 
   test('能触发effect', () => {
     const value = reactive({ count: 0 });
-    const c = computed(() => value.count);
+    const c = computed(() => value.count); //此时c的value是undefined，c是一个computedClass，初始化不执行get，所以不执行里面的effect
     let dummy;
     effect(() => {
-      dummy = c.value;
+      dummy = c.value; //这里执行effect，那computed的值时走get，里面的effect的fn是上面传入的，然后执行该fn，走get(track)，然后赋值给computedClass
     });
     expect(dummy).toBe(0);
     value.count = 1;

@@ -63,14 +63,17 @@ pnpm test
 ### reactivity
 - [x] reactive 的实现
 - [x] ref 的实现
-- [x] readonly 的实现
 - [x] computed 的实现
 - [x] track 依赖收集
 - [x] trigger 触发依赖
+- [x] 嵌套 effect
+- [x] 支持 isReactive
+- [x] 支持 effect.scheduler
 
 ### runtime
 - [x] 支持组件类型
 - [x] 支持 element 类型
+- [x] render
 - [x] patch
 - [x] diff
 - [x] h

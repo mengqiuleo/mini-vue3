@@ -4,10 +4,6 @@ let activeEffect
 const effectStack = []
 
 export class ReactiveEffect{ //* 一种封装的思想
-  // private _fn: any
-  // deps = []
-  // active = true //控制stop是否已经清理过, true表示还没clean
-  // onStop?: () => void
   constructor(fn, scheduler = null){
     this._fn = fn
     this.scheduler = scheduler
@@ -23,7 +19,7 @@ export class ReactiveEffect{ //* 一种封装的思想
       return this._fn()
     }
 
-    const result = this._fn()
+    const result = this._fn() //在这里执行 effect的时候，触发track/trigger，那么就能保证 activeEffect 是当前this，执行之后重置
 
     effectStack.pop()
     activeEffect = effectStack[effectStack.length-1]
@@ -31,7 +27,7 @@ export class ReactiveEffect{ //* 一种封装的思想
   }
 
   stop(){
-    //m频繁调用 stop 时，如果清空过了，就不用再清空了
+    //频繁调用 stop 时，如果清空过了，就不用再清空了
     if(this.active){
       cleanupEffect(this)
       if(this.onStop){
@@ -40,6 +36,25 @@ export class ReactiveEffect{ //* 一种封装的思想
       this.active = false
     }
   }
+}
+
+export function effect(fn, options = {}){
+  const _effect = new ReactiveEffect(fn)
+
+  if(!options.lazy){ //lazy针对 计算属性
+    _effect.run()
+  }
+
+  _effect.scheduler = options.scheduler
+
+  const runner =  _effect.run.bind(_effect) // 返回的那个runner函数
+  runner.effect = _effect
+  return runner
+
+}
+
+export function stop(runner){
+  runner.effect.stop()
 }
 
 function cleanupEffect(effect){
@@ -51,9 +66,6 @@ function cleanupEffect(effect){
 
 const targetMap = new Map() //所有对象，映射
 export function track(target, key){
-  // if(!activeEffect) return
-  // if(!shouldTrack) return
-  //对上面代码优化
   if(!activeEffect) return
 
   // 每一个 target 的每一个属性都要存，容器 Set
@@ -70,6 +82,7 @@ export function track(target, key){
   }
 
   // trackEffects(dep)
+  // 这里可以不用判断 activeEffect是否已经在dep中了，因为 dep 是一个set
   dep.add(activeEffect)
 }
 
@@ -77,12 +90,8 @@ export function trackEffects(dep){
   //如果activeEffect已经在dep中了，不用再加了
   if(!dep.has(activeEffect)){
     dep.add(activeEffect) //将当前的更新函数保存，如何拿到当前effect中的fn, 利用全局变量
-    activeEffect.deps.push(dep) //* 互相收集，当前effect收集它的 dep
+    activeEffect.deps.push(dep) //* 互相收集，当前effect收集它的 dep，这个是在stop 中使用的，而目前我们不考虑使用这个
   }
-}
-
-export function isTracking(){
-  return shouldTrack && activeEffect !== undefined
 }
 
 export function trigger(target, key){
@@ -101,35 +110,13 @@ export function trigger(target, key){
   })
 }
 
-export function triggerEffects(dep){
-  if(!dep) return
-  for(const effect of dep){ //每一个effect都是一个 class类实例
-    if(effect.scheduler){
-      effect.scheduler()
-    } else {
-      effect.run()
-    }
-  }
-}
+// export function triggerEffects(dep){
+//   for(const effect of dep){ //每一个effect都是一个 class类实例
+//     if(effect.scheduler){
+//       effect.scheduler()
+//     } else {
+//       effect.run()
+//     }
+//   }
+// }
 
-export function effect(fn, options = {}){
-  const _effect = new ReactiveEffect(fn)
-  // _effect.onStop = options.onStop
-  // 将上面这行代码进行优化
-  // Object.assign(_effect, options)
-  //再次进行优化，抽离一个公共函数
-  if(!options.lazy){
-    _effect.run()
-  }
-  // extend(_effect, options)
-  _effect.scheduler = options.scheduler
-
-  const runner =  _effect.run.bind(_effect) // 返回的那个runner函数
-  runner.effect = _effect
-  return runner
-  // return _effect.run
-}
-
-export function stop(runner){
-  runner.effect.stop()
-}

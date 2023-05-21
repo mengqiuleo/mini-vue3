@@ -3,6 +3,7 @@ import { track, trigger } from './effect';
 
 const reactiveMap = new WeakMap();
 
+// 这里没有对代码进行抽离，对应 readonly, shallowReadonly... 这些都是传入的 baseHandler 不同
 export function reactive(target) {
   if (!isObject(target)) {
     return target;
