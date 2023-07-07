@@ -51,7 +51,7 @@ function mountElement(vnode, container, anchor) {
     patchProps(el, null, props);
   }
 
-  vnode.el = el;
+  vnode.el = el; //保存虚拟节点的真实dom位置
   container.insertBefore(el, anchor);
 }
 

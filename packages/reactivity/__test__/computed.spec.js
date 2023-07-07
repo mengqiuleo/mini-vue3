@@ -4,6 +4,14 @@ import { reactive } from '../reactive.js';
 import { ref } from '../ref.js';
 
 describe('computed', () => {
+  test('easy use', () => {
+    const observed = reactive({ count: 10 });
+    const c = computed(() => observed.count);
+    expect(c.value).toBe(10);
+
+    observed.count++;
+    expect(c.value).toBe(11);
+  });
   test('basic use', () => {
     const observed = reactive({ count: 0 });
     const r = ref(10);
@@ -40,6 +48,7 @@ describe('computed', () => {
 
   test('能触发effect', () => {
     const value = reactive({ count: 0 });
+    debugger
     const c = computed(() => value.count); //此时c的value是undefined，c是一个computedClass，初始化不执行get，所以不执行里面的effect
     let dummy;
     effect(() => {

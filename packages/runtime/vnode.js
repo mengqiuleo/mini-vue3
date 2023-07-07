@@ -59,7 +59,7 @@ export function h(type, props = null, children = null) {
     props,
     children,
     shapeFlag,
-    el: null,//当前虚拟节点对应的真实节点
+    el: null,//当前虚拟节点对应的真实节点, 卸载时会用到
     anchor: null, // fragment专有
     key: props && (props.key != null ? props.key : null),
     component: null, // 组件的instance

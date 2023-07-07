@@ -35,31 +35,26 @@ class ComputedRefImpl {
     this.effect = effect(getter, {
       lazy: true,
       scheduler: () => {
-        if (!this._dirty) { //如果以前标记值未发生改变，那么此时标记为值发生改变，那么下一次我们获取计算属性值时，就是执行effect的fn，那么此时就会触发get，走 Reflect.get
-          this._dirty = true;
-          trigger(this, 'value');//响应式值变化，执行所有包含计算属性的effect
+        if (!this._dirty) { 
+          this._dirty = true;//这里是为了初始化时不要执行computed，设置lazy，那么effect函数里面的fn就不会执行
+          trigger(this, 'value');
         }
       },
     });
   }
 
-  /**
-   * 这里需要分成：初始化，第一次调用，第二次调用 
-   * 初始化：要求不执行，刚开始不会走下面的 get 函数，下面的 get 函数是在获取值的时候才走  在effect中设置了lazy，所以不执行，
-   * 第一次get调用：dirty=true，调用 effect，这是effect首次执行，那么执行fn，获取值，dirty=false
-   * 当响应式值发生变化时，它对应的effect触发，而这个effect中包含这个computedEffect,而这个computedEffect是执行scheduler的，此时就会标记dirty=true，
-   * 当我们第二次调用get时，此时值发生变化，dirty=true
-   */
   get value() {
     if (this._dirty) {
       this._value = this.effect(); 
       this._dirty = false;
       track(this, 'value');//这里的track指的是 computedClass 和它对应的value，的effect(这里的effect是指包含了计算属性调用的effect)
+      //验证这个track的作用：调试 能触发effect UT
+      //这个track 是将 调用了计算属性的 effect 放入 computedClass 中，当原值发生变化时，调用所有的effect，包括当前的计算属性effect,那么就会调用scheduler，进行trigger
+      //将 当前computedClass 的所有 effect执行
     }
     return this._value;
   }
 
-  // 当 set 时， 我们执行的是 scheduler
   set value(val) {
     this._setter(val);
   }
