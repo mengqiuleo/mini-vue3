@@ -48,6 +48,7 @@ function mountElement(vnode, container, anchor) {
   }
 
   if (props) {
+    //* 挂载元素需要三个操作: 挂载元素，处理props，处理children
     patchProps(el, null, props);
   }
 
@@ -155,8 +156,8 @@ function patchChildren(n1, n2, container, anchor) {
   const { shapeFlag: prevShapeFlag, children: c1 } = n1;
   const { shapeFlag, children: c2 } = n2;
 
-  if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
-    if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+  if (shapeFlag & ShapeFlags.TEXT_CHILDREN) { 
+    if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) { //n1：数组，n2: 文本，卸载n1
       unmountChildren(c1);
     }
     if (c2 !== c1) {
@@ -172,7 +173,7 @@ function patchChildren(n1, n2, container, anchor) {
         if (c1[0] && c1[0].key != null && c2[0] && c2[0].key != null) {
           patchKeyedChildren(c1, c2, container, anchor);
         } else {
-          patchUnkeyedChildren(c1, c2, container, anchor);
+          patchUnkeyedChildren(c1, c2, container, anchor); //处理没有 key 的情况
         }
       } else {
         // c2 is null

@@ -21,6 +21,7 @@ export function patchProps(el, oldProps, newProps) {
   }
 }
 
+//* 建议参考霍春阳博客
 const domPropsRE = /[A-Z]|^(value|checked|selected|muted|disabled)$/;
 function patchDomProp(el, key, prev, next) {
   switch (key) {
