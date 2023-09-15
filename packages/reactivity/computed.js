@@ -42,10 +42,10 @@ class ComputedRefImpl {
       },
     });
   }
-
+// 如果 计算属性在effect中使用，那么我们也是需要实现track和trigger的
   get value() {
     if (this._dirty) {
-      this._value = this.effect(); 
+      this._value = this.effect(); // effect执行后返回的是执行结果
       this._dirty = false;
       track(this, 'value');//这里的track指的是 computedClass 和它对应的value，的effect(这里的effect是指包含了计算属性调用的effect)
       //验证这个track的作用：调试 能触发effect UT

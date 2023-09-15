@@ -30,7 +30,7 @@ export function reactive(target) {
       if (hasChanged(value, oldValue)) {
         trigger(target, key);
         if (isArray(target) && target.length !== oldLength) {
-          trigger(target, 'length');
+          trigger(target, 'length'); //手动追踪length属性，比如effect中写到：console.log(arr.length)
         }
       }
       return res;

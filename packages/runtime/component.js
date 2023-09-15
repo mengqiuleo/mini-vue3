@@ -3,7 +3,7 @@ import { normalizeVNode } from './vnode';
 import { queueJob } from './scheduler';
 // import { compile } from '../compiler/index';
 let compile;
-function updateProps(instance, vnode) {
+function updateProps(instance, vnode) { //处理props
   const { type: Component, props: vnodeProps } = vnode;
   const props = (instance.props = {});
   const attrs = (instance.attrs = {});
@@ -16,7 +16,7 @@ function updateProps(instance, vnode) {
   }
   // toThink: props源码是shallowReactive，确实需要吗?
   // 需要。否则子组件修改props不会触发更新
-  instance.props = reactive(instance.props);
+  instance.props = reactive(instance.props);//*响应式：实现修改props触发更新
 }
 
 function fallThrough(instance, subTree) {
@@ -31,9 +31,9 @@ function fallThrough(instance, subTree) {
 export function mountComponent(vnode, container, anchor, patch) {
   const { type: Component } = vnode;
 
-  // createComponentInstance
+  // createComponentInstance: 创建组件实例
   const instance = (vnode.component = {
-    props: {},
+    props: {},//* props VS attrs
     attrs: {},
     setupState: null,
     ctx: null,
@@ -43,7 +43,7 @@ export function mountComponent(vnode, container, anchor, patch) {
     next: null, // 组件更新时，把新vnode暂放在这里
   });
 
-  // setupComponent
+  // setupComponent: 处理props
   updateProps(instance, vnode);
 
   // 源码：instance.setupState = proxyRefs(setupResult)
@@ -53,7 +53,7 @@ export function mountComponent(vnode, container, anchor, patch) {
 
   instance.ctx = {
     ...instance.props,
-    ...instance.setupState,
+    ...instance.setupState,//这里面有props
   };
 
   if (!Component.render && Component.template) {
@@ -62,6 +62,7 @@ export function mountComponent(vnode, container, anchor, patch) {
       const el = document.querySelector(template);
       template = el ? el.innerHTML : '';
     }
+    //* 注意，这里是和 compiler 的结合 ！！！！！！
     Component.render =  new Function('ctx', compile(template));
   }
 

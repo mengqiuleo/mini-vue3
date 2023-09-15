@@ -228,6 +228,7 @@ function patchKeyedChildren(c1, c2, container, anchor) {
   }
 
   if (i > e1) {
+    //* 这里对应的是笔记的那两幅图：插入和删除
     // 3.经过1、2直接将旧结点比对完，则剩下的新结点直接mount
     const nextPos = e2 + 1;
     const curAnchor = (c2[nextPos] && c2[nextPos].el) || anchor;

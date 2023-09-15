@@ -22,7 +22,7 @@ export class ReactiveEffect{ //* 一种封装的思想
     const result = this._fn() //在这里执行 effect的时候，触发track/trigger，那么就能保证 activeEffect 是当前this，执行之后重置
 
     effectStack.pop()
-    activeEffect = effectStack[effectStack.length-1]
+    activeEffect = effectStack[effectStack.length-1] //解决 effect嵌套的问题
     return result
   }
 

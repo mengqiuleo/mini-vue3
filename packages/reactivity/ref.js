@@ -20,7 +20,7 @@ class RefImpl {
   }
 
   get value() {
-    track(this, 'value');
+    track(this, 'value'); //* 直接监听 value  属性
     return this._value;
   }
 
