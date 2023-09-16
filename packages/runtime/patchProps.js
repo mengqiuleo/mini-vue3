@@ -23,6 +23,8 @@ export function patchProps(el, oldProps, newProps) {
 
 //* 建议参考霍春阳博客
 const domPropsRE = /[A-Z]|^(value|checked|selected|muted|disabled)$/;
+// 这个正则匹配成功，需要满足 [A-Z] 或者 ^(value|checked|selected|muted|disabled)$
+// [A-Z] 是为了匹配 innerHTML 和 textContent 这两个属性
 function patchDomProp(el, key, prev, next) {
   switch (key) {
     case 'class':
@@ -48,7 +50,7 @@ function patchDomProp(el, key, prev, next) {
       }
       break;
     default:
-      if (/^on[^a-z]/.test(key)) {
+      if (/^on[^a-z]/.test(key)) { // 以 on 开头， [^a-z] 表示不能是a-z，那么只能是大写的
         // 事件
         if (prev !== next) {
           const eventName = key.slice(2).toLowerCase();
@@ -59,12 +61,18 @@ function patchDomProp(el, key, prev, next) {
             el.addEventListener(eventName, next);
           }
         }
-      } else if (domPropsRE.test(key)) {
-        if (next === '' && typeof el[key] === 'boolean') {
+      } 
+      // 下面是设置 Attributes 和 DOM Properties
+      else if (domPropsRE.test(key)) { //*满足这些正则的，作为 domProp 赋值
+        if (next === '' && typeof el[key] === 'boolean') { // 这种情况：<input type="checkbox" checked />
+          // 编译成 vnode 为: { "checked": "" }
           next = true;
+          //它的值是空字符串。
+          //但如果给 input 元素的 checked 直接赋值为空字符串，它实际上是赋值为 false
+          //因此还要加个特殊判断
         }
         el[key] = next;
-      } else {
+      } else { //*不满足这些正则的，使用setAttribute
         // 例如自定义属性{custom: ''}，应该用setAttribute设置为<input custom />
         // 而{custom: null}，应用removeAttribute设置为<input />
         if (next == null || next === false) {
