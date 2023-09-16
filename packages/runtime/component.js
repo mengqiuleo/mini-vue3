@@ -16,7 +16,7 @@ function updateProps(instance, vnode) { //处理props
   }
   // toThink: props源码是shallowReactive，确实需要吗?
   // 需要。否则子组件修改props不会触发更新
-  instance.props = reactive(instance.props);//*响应式：实现修改props触发更新
+  instance.props = reactive(instance.props);//*响应式：实现修改props触发更新！！！
 }
 
 function fallThrough(instance, subTree) {

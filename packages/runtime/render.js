@@ -75,7 +75,7 @@ function updateComponent(n1, n2) {
 }
 
 function unmount(vnode) {
-  const { shapeFlag, el } = vnode;
+  const { shapeFlag, el } = vnode; //el是当前节点对应的真实dom
   if (shapeFlag & ShapeFlags.COMPONENT) {
     unmountComponent(vnode);
   } else if (shapeFlag & ShapeFlags.FRAGMENT) {
@@ -169,7 +169,8 @@ function patchChildren(n1, n2, container, anchor) {
       // c1 was array
       if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
         // c2 is array
-        // 简单认为头一个元素有key就都有key
+        // 简单认为头一个元素有key就都有key 
+        //* DIFF 算法！！！
         if (c1[0] && c1[0].key != null && c2[0] && c2[0].key != null) {
           patchKeyedChildren(c1, c2, container, anchor);
         } else {
@@ -196,6 +197,7 @@ function unmountChildren(children) {
 }
 
 function patchUnkeyedChildren(c1, c2, container, anchor) {
+  // 对于没有key 的情况，直接暴力比对，一一比对，不一样的话，删除旧的，挂载新的
   const oldLength = c1.length;
   const newLength = c2.length;
   const commonLength = Math.min(oldLength, newLength);
