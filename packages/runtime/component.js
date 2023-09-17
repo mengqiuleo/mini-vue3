@@ -38,22 +38,23 @@ export function mountComponent(vnode, container, anchor, patch) {
     setupState: null,
     ctx: null,
     update: null,
-    isMounted: false,
-    subTree: null,
+    isMounted: false, //组件是否挂载过
+    subTree: null, //组件应该变成的vnode
+    slots: {},
     next: null, // 组件更新时，把新vnode暂放在这里
   });
 
-  // setupComponent: 处理props
-  updateProps(instance, vnode);
+  // setupComponent: 处理props，将需要的数据解析到instance实例上
+  updateProps(instance, vnode); //主要是分割 props 和 attrs 
 
   // 源码：instance.setupState = proxyRefs(setupResult)
   instance.setupState = Component.setup?.(instance.props, {
     attrs: instance.attrs,
   });
 
-  instance.ctx = {
+  instance.ctx = { //把ctx当做参数传入effect函数，在effect中调用ctx.count，就相当于effect中的值调用，因此render函数就相当于effect
     ...instance.props,
-    ...instance.setupState,//这里面有props
+    ...instance.setupState,
   };
 
   if (!Component.render && Component.template) {
@@ -66,18 +67,22 @@ export function mountComponent(vnode, container, anchor, patch) {
     Component.render =  new Function('ctx', compile(template));
   }
 
+  //* 组件的 render 一定是一个 effect 函数，数据变化会重新渲染 
   // setupRenderEffect
-  instance.update = effect(
+  instance.update = effect( //每个组件都有一个effect
     () => {
-      if (!instance.isMounted) {
+      if (!instance.isMounted) { //没有被挂载，初次渲染
         // mount
-        const subTree = (instance.subTree = normalizeVNode(
+        const subTree = (instance.subTree = normalizeVNode( //subTree是vnode
           Component.render(instance.ctx)
         ));
+        //注意区分组件的render方法和源码里面的render方法
+        //组件的render方法：功能等同于template：返回的是vnode
+        //源码里的render方法：将vnode挂载到页面上
 
         fallThrough(instance, subTree);
 
-        patch(null, subTree, container, anchor);
+        patch(null, subTree, container, anchor); //对组件的子元素处理
         instance.isMounted = true;
         vnode.el = subTree.el;
       } else {
@@ -94,20 +99,20 @@ export function mountComponent(vnode, container, anchor, patch) {
           };
         }
 
-        const prev = instance.subTree;
-        const subTree = (instance.subTree = normalizeVNode(
-          Component.render(instance.ctx)
+        const prev = instance.subTree; //旧的树 的 vnode
+        const subTree = (instance.subTree = normalizeVNode( //新的树的vnode
+          Component.render(instance.ctx) 
         ));
 
         fallThrough(instance, subTree);
 
-        patch(prev, subTree, container, anchor);
+        patch(prev, subTree, container, anchor); //对比两棵树的vnode差异：diff算法
         vnode.el = subTree.el;
       }
     },
     {
-      scheduler(){
-        queueJob(instance.update)
+      scheduler(){ //当我们传入了调度器，第一次会执行effect，之后就会执行调度器
+        queueJob(instance.update) //当需要更新时，我们不立即更新，而是将这个更新放入queue
       }
     }
   );
@@ -116,3 +121,32 @@ export function mountComponent(vnode, container, anchor, patch) {
 export function registerRuntimeCompiler(_compile) {
   compile = _compile;
 }
+
+// 如何结合 响应式
+/**
+render(ctx) {
+  return [
+    h('div', null, ctx.count),
+    h(
+      'button',
+      {
+        onClick: ctx.add,
+      },
+      'add'
+    ),
+  ];
+},
+
+我们首先将 instance.props = reactive(instance.props) 
+对于 effect，首先明确两点，
+1. 组件的 render 一定是一个 effect 函数，数据变化会重新渲染 
+2. effect中需要调用响应式的属性值
+对于render函数中，我们传入ctx参数，ctx其实
+instance.ctx = {
+    ...instance.props,
+    ...instance.setupState,//这里面有props
+  }
+并且在 render函数中，我们通过 ctx.count 调用属性，这样属性就会收集当前effect，即当前render函数
+
+本来render里面是进行了proxy代理的，我们这里简化了
+ */

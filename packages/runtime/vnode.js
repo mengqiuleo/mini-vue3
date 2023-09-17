@@ -61,10 +61,36 @@ export function h(type, props = null, children = null) {
     shapeFlag,
     el: null,//当前虚拟节点对应的真实节点, 卸载时会用到
     anchor: null, // fragment专有
-    key: props && (props.key != null ? props.key : null),
+    key: props && (props.key != null ? props.key : null), //diff算法
     component: null, // 组件的instance
   };
 }
+// type如果为对象时，里面的属性可能为：
+/**
+type: {
+  template:`{{ msg }} {{ name }}`,
+  render(ctx) {
+    return [
+      h('div', null, ctx.count),
+      h(
+        'button',
+        {
+          onClick: ctx.add,
+        },
+        'add'
+      ),
+    ];
+  },
+  props: ['name'], //内部对该属性声明
+  setup(){
+    return {
+      msg: 'hello'
+    }
+  }
+}
+
+这些 属性都是我们直接写入的，在createApp中
+ */
 
 export function normalizeVNode(result) {
   if (Array.isArray(result)) {
