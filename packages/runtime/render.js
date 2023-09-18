@@ -14,8 +14,15 @@ export function render(vnode, container) {
   container._vnode = vnode;
 }
 
+//parentNode.insertBefore(newNode, referenceNode);
+/**
+parentNode 是要将新元素插入到其子节点中的父节点，newNode 是要插入的新节点，referenceNode 是已存在于父节点中的某个子节点。
+插入操作将在 referenceNode 之前插入 newNode。
+referenceNode如果未规定，则 insertBefore 方法会在结尾插入 newNode
+ */
+
 // n1可能为null，n2不可能为null
-function patch(n1, n2, container, anchor) {
+function patch(n1, n2, container, anchor) { // anchor 是 原来位置上的下一个节点，我们统一采用 insertBefore 插入节点
   if (n1 && !isSameVNodeType(n1, n2)) { //n1 n2 类型不同，n1卸载
     // n1被卸载后，n2将会创建，因此anchor至关重要。需要将它设置为n1的下一个兄弟节点
     anchor = (n1.anchor || n1.el).nextSibling;
@@ -91,7 +98,6 @@ function unmountComponent(vnode) {
 }
 
 function unmountFragment(vnode) {
-  // eslint-disable-next-line prefer-const
   let { el: cur, anchor: end } = vnode;
   while (cur !== end) {
     const next = cur.nextSibling;
@@ -229,7 +235,7 @@ function patchKeyedChildren(c1, c2, container, anchor) {
     e2--;
   }
 
-  if (i > e1) {
+  if (i > e1) { //新节点mount
     //* 这里对应的是笔记的那两幅图：插入和删除
     // 3.经过1、2直接将旧结点比对完，则剩下的新结点直接mount
     const nextPos = e2 + 1;
@@ -237,26 +243,26 @@ function patchKeyedChildren(c1, c2, container, anchor) {
     for (let j = i; j <= e2; j++) {
       patch(null, c2[j], container, curAnchor);
     }
-  } else if (i > e2) {
+  } else if (i > e2) { //旧结点卸载
     // 3.经过1、2直接将新结点比对完，则剩下的旧结点直接unmount
     for (let j = i; j <= e1; j++) {
       unmount(c1[j]);
     }
   } else {
     // 4.采用传统diff算法，但不真的添加和移动，只做标记和删除
-    const map = new Map();
+    const map = new Map(); //尽可能复用
     for (let j = i; j <= e1; j++) {
       const prev = c1[j];
-      map.set(prev.key, { prev, j });
+      map.set(prev.key, { prev, j }); //拿旧结点做映射表，因为要看是否有旧结点可以复用
     }
     // used to track whether any node has moved
     let maxNewIndexSoFar = 0;
     let move = false;
     const toMounted = [];
     const source = new Array(e2 - i + 1).fill(-1);
-    for (let k = 0; k < e2 - i + 1; k++) {
+    for (let k = 0; k < e2 - i + 1; k++) { //在新节点中找
       const next = c2[k + i];
-      if (map.has(next.key)) {
+      if (map.has(next.key)) { //找到了
         const { prev, j } = map.get(next.key);
         patch(prev, next, container, anchor);
         if (j < maxNewIndexSoFar) {

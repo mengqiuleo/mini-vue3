@@ -213,6 +213,7 @@ describe('update component trigger by self', () => {
     };
     render(h(Comp), root);
     expect(root.innerHTML).toBe('<div>0</div>');
+    debugger
 
     root.children[0].click();
     await nextTick();
