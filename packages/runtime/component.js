@@ -80,7 +80,7 @@ export function mountComponent(vnode, container, anchor, patch) {
         //组件的render方法：功能等同于template：返回的是vnode
         //源码里的render方法：将vnode挂载到页面上
 
-        fallThrough(instance, subTree);
+        fallThrough(instance, subTree); //整合props，好像是因为会继承
 
         patch(null, subTree, container, anchor); //对组件的子元素处理
         instance.isMounted = true;
@@ -89,8 +89,10 @@ export function mountComponent(vnode, container, anchor, patch) {
         // update
 
         // instance.next存在，代表是被动更新。否则是主动更新
+        //被动更新：父组件传给子组件的props发生改变，那么子组件也会更新，这里的子组件更新就是被动更新
+        // 即 updateComponent 函数
         if (instance.next) {
-          vnode = instance.next;
+          vnode = instance.next; //即n2
           instance.next = null;
           updateProps(instance, vnode);
           instance.ctx = {
@@ -101,7 +103,7 @@ export function mountComponent(vnode, container, anchor, patch) {
 
         const prev = instance.subTree; //旧的树 的 vnode
         const subTree = (instance.subTree = normalizeVNode( //新的树的vnode
-          Component.render(instance.ctx) 
+          Component.render(instance.ctx)  //normalizeVNode函数用来规整vnode，比如用户传入了一个vnode数组，但是正确的vnode是最外层有一个根节点
         ));
 
         fallThrough(instance, subTree);

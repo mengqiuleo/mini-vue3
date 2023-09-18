@@ -92,6 +92,7 @@ type: {
 这些 属性都是我们直接写入的，在createApp中
  */
 
+// 该函数用于规整vnode，因为所有的vnode一定有一个根节点，如果用户传入的vnode不标准，我们需要整理
 export function normalizeVNode(result) {
   if (Array.isArray(result)) {
     return h(Fragment, null, result);

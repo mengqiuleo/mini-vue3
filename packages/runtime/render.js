@@ -77,8 +77,9 @@ function mountChildren(children, container, anchor) {
 
 function updateComponent(n1, n2) {
   n2.component = n1.component;
-  n2.component.next = n2;
-  n2.component.update();
+  n2.component.next = n2; //instance.next存在，代表是被动更新。否则是主动更新
+  //这里设置next，在 update(effect)中会使用
+  n2.component.update(); //被动更新
 }
 
 function unmount(vnode) {
