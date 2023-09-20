@@ -55,6 +55,7 @@ function resolveElementASTNode(node, parent) { //专门处理特殊指令
   const ifNode = //是否存在 v-if 或者 v-else-if
     pluck(node.directives, 'if') || pluck(node.directives, 'else-if');
 
+  //* 好恶心，看不懂，感觉为了解析而解析，先跳过吧！！！
   if (ifNode) { //<h1 v-if="ok"></h1> <h2 v-else></h2>  ->   ok ? h("h1") : h("h2")
     // 递归必须用resolveElementASTNode，因为一个元素可能有多个指令
     // 所以处理指令时，移除当下指令也是必须的
@@ -157,9 +158,13 @@ function createPropArr(node) { //解析属性
 
           // 以括号结尾，并且不含'=>'的情况，如 @click="foo()"
           // 当然，判断很不严谨，比如不支持 @click="i++"
+          // 首先有 ( 和 )， ( 和 ) 之间匹配 [^)]*?
+          //匹配：除了 ) 之外的任意一个字符     *?：重复任意次，但尽可能少重复
           if (/\([^)]*?\)$/.test(exp) && !exp.includes('=>')) {
             exp = `$event => (${exp})`;
           }
+          //上面的正则所代表的的情况：
+          //<div @click='foo($event,123,foo)' @mouseup='bar' />   转换成   h('div', {onClick: ($event) => foo($event, 123, foo), onMouseup: bar})
           return `${eventName}: ${exp}`; //onClick: handleClick
         case 'html':
           return `innerHTML: ${createText(dir.exp)}`;
@@ -171,7 +176,7 @@ function createPropArr(node) { //解析属性
 }
 
 // 可以不remove吗？不可以
-function pluck(directives, name, remove = true) {
+function pluck(directives, name, remove = true) { //工具函数：判断是否存在 某种指令：pluck(node.directives, 'for')   pluck(node.directives, 'else-if') 
   const index = directives.findIndex((dir) => dir.name === name);
   const dir = directives[index];
   if (remove && index > -1) {
