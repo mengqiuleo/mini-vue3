@@ -3,7 +3,7 @@ import { NodeTypes, createRoot, ElementTypes } from './ast';
 import { isVoidTag, isNativeTag } from './index';
 
 export function parse(content) {
-  const context = createParserContext(content);
+  const context = createParserContext(content); //对模板进行包装，即对数据格式进行处理
   return createRoot(parseChildren(context));
 }
 
@@ -26,17 +26,17 @@ function parseChildren(context) {
     let node;
     if (s.startsWith(context.options.delimiters[0])) {
       // '{{'
-      node = parseInterpolation(context);
+      node = parseInterpolation(context); //插值节点 {{name}}
     } else if (s[0] === '<') {
-      node = parseElement(context);
+      node = parseElement(context); //元素节点
     } else {
       node = parseText(context);
     }
     nodes.push(node);
   }
 
-  let removedWhitespace = false;
-  for (let i = 0; i < nodes.length; i++) {
+  let removedWhitespace = false; //是否移除空白符
+  for (let i = 0; i < nodes.length; i++) { //这里是处理空格符，属于特殊情况，可忽略
     const node = nodes[i];
     if (node.type === NodeTypes.TEXT) {
       // 全是空白的节点
@@ -62,6 +62,9 @@ function parseChildren(context) {
     }
   }
 
+  //const nodes = [0, 1, '', 'hello', null, undefined, false, true];
+  //使用 nodes.filter(Boolean) 之后，将过滤掉所有的假值元素（例如 0、''、null、undefined 和 false），
+  //返回的新数组将只包含真值元素（例如 1、'hello' 和 true）
   return removedWhitespace ? nodes.filter(Boolean) : nodes;
 }
 
@@ -103,6 +106,7 @@ function parseTextData(context, length) {
 
 // 不支持文本节点中带有'<'符号
 function parseText(context) { //解析文本
+  //文本的结束位置：{{  或者 </
   const endTokens = ['<', context.options.delimiters[0]];//右边结束位置，</ {{ 或者文本最末尾，谁下标最小取谁
 
   // 寻找text最近的endIndex。因为遇到'<'或'{{'都可能结束
@@ -113,7 +117,7 @@ function parseText(context) { //解析文本
       endIndex = index;
     }
   }
-
+  // endIndex 就是当前文本的末尾
   const content = parseTextData(context, endIndex);
 
   return {
@@ -175,10 +179,11 @@ function isComponent(tag, context) {
   return !options.isNativeTag(tag);
 }
 
-function advanceSpaces(context) { //吃掉所有的空格
-  const match = /^[\t\r\n\f ]+/.exec(context.source);
+function advanceSpaces(context) { //工具函数：吃掉所有的空格
+  // （制表符、回车符、换行符、换页符和空格） +: 重复一次或更多次
+  const match = /^[\t\r\n\f ]+/.exec(context.source); //match是匹配到的空格
   if (match) {
-    advanceBy(context, match[0].length);
+    advanceBy(context, match[0].length); //删除匹配到的空格
   }
 }
 
