@@ -260,7 +260,7 @@ function patchKeyedChildren(c1, c2, container, anchor) {
     let maxNewIndexSoFar = 0;
     let move = false;
     const toMounted = [];
-    const source = new Array(e2 - i + 1).fill(-1);
+    const source = new Array(e2 - i + 1).fill(-1); //i是source的起点，终点是e2
     for (let k = 0; k < e2 - i + 1; k++) { //在新节点中找
       const next = c2[k + i];
       if (map.has(next.key)) { //找到了
@@ -288,12 +288,12 @@ function patchKeyedChildren(c1, c2, container, anchor) {
       // 5.需要移动，则采用新的最长上升子序列算法
       const seq = getSequence(source);
       let j = seq.length - 1;
-      for (let k = source.length - 1; k >= 0; k--) {
+      for (let k = source.length - 1; k >= 0; k--) {  //source数组从后往前遍历
         if (k === seq[j]) {
           // 不用移动
           j--;
         } else {
-          const pos = k + i;
+          const pos = k + i; //i是source数组的起点，加上source数组当前的位置，这样就能找到我们现在需要操作的节点（c2[pos]）
           const nextPos = pos + 1;
           const curAnchor = (c2[nextPos] && c2[nextPos].el) || anchor;
           if (source[k] === -1) {
